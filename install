@@ -40,17 +40,11 @@ fi
 fedora() {
   sudo dnf install -y zip fuse git make python3
 
-  command -v proton-shim >/dev/null 2>&1 && return 0
-  git clone https://gitlab.com/Wisher/ProtonShim.git
-  cd ProtonShim
-  sudo make install
-  cd ..
-  rm ProtonShim
 }
 
 case "$PKG_MANAGER" in
   arch)
-    yay -S --needed --noconfirm proton-shim fuse2 zip
+    yay -S --needed --noconfirm fuse2 zip
     ;;
   fedora)
     fedora
@@ -63,6 +57,14 @@ INSTALL_DIR="$HOME/Games/Starfield"
 mkdir -p "$HOME/Games"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+PROTON_SHIM="$SCRIPT_DIR/proton-shim.sh"
+
+chmod +x "$PROTON_SHIM"
+
+proton-shim() {
+  "$PROTON_SHIM" "$@"
+}
 
 # ---------------- Download Jackify ----------------
 
