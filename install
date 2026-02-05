@@ -42,7 +42,7 @@ fedora() {
 
   command -v proton-shim >/dev/null 2>&1 && return 0
   git clone https://gitlab.com/Wisher/ProtonShim.git
-  cd proton-shim
+  cd ProtonShim
   sudo make install
   cd ..
   rm ProtonShim
