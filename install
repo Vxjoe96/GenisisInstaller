@@ -168,5 +168,137 @@ INSTALL DETAILS
 EOF
 )"
 
-"$SCRIPT_DIR/Jackify.AppImage"
+"$SCRIPT_DIR/Jackify.AppImage" & disown
+
+mv ./DeityVengy was here.ico "$HOME/Games/Starfield/users/steamuser/Documents/My Games/Starfield/"
+mv ./StarfieldCustom.ini "$HOME/Games/Starfield/users/steamuser/Documents/My Games/Starfield/"
+# ---------- Set Perf Settings ----------
+
+INI_PATH="$HOME/Games/Starfield/users/steamuser/Documents/My Games/Starfield/StarfieldPrefs.ini"
+
+[[ -f "$INI_PATH" ]] || {
+  echo "ERROR: $INI_PATH not found"
+  exit 1
+}
+
+tmp="$(mktemp)"
+trap 'rm -f "$tmp"' EXIT
+
+# ---------- TARGET VALUES ----------
+
+declare -A TARGETS=(
+  # Display
+  ["Display.fRenderResolutionScaleFactor"]="1.0000"
+  ["Display.bDynamicResolutionEnabled"]="0"
+  ["Display.uiUpscalingTechnique"]="1"
+  ["Display.uiFrameGenerationTech"]="0"
+  ["Display.fFilmGrainIntensity"]="0.0000"
+  ["Display.bEnableVsync"]="0"
+  ["Display.fGamma"]="2.6200"
+  ["Display.fContrast"]="0.9000"
+  ["Display.fContrastUI"]="0.9000"
+  ["Display.fGammaUI"]="2.6200"
+
+  # Quality
+  ["Quality.uMotionBlur"]="0"
+  ["Quality.uSAO"]="3"
+  ["Quality.bMotionBlurEnabled"]="0"
+  ["Quality.uContactShadows"]="2"
+  ["Quality.uGrass"]="2"
+  ["Quality.uCrowd"]="3"
+  ["Quality.uVolumetricLighting"]="2"
+  ["Quality.uParticle"]="2"
+  ["Quality.uReflections"]="2"
+  ["Quality.uGlobalIllumination"]="2"
+  ["Quality.uShadows"]="2"
+
+  # Interface
+  ["Interface.bDialogueEnable"]="0"
+  ["Interface.bDialogueSubtitles"]="1"
+  ["Interface.bGeneralSubtitles"]="1"
+  ["Interface.bDamageNumbersEnabled"]="0"
+
+  # Audio
+  ["Audio.fAudioVolumeMusic"]="1.0000"
+  ["Audio.fAudioVolumeMaster"]="1.0000"
+  ["Audio.fAudioVolumeEffects"]="1.0000"
+
+  # Camera
+  ["Camera.bDisableAutoVanityMode"]="1"
+
+  # General
+  ["General.bDisplayCreditCTA"]="0"
+
+  # Legal
+  ["Legal.iHasUserAcceptedVersion"]="1"
+  ["Legal.bHasUserAccepted"]="1"
+
+  # GamePlay
+  ["GamePlay.bSaveOnPause"]="0"
+)
+
+# ---------- PROCESS FILE ----------
+
+awk -v OFS="" -v targets="$(declare -p TARGETS)" '
+BEGIN {
+  eval targets
+}
+
+function emit_missing(section) {
+  for (k in TARGETS) {
+    split(k, a, ".")
+    if (a[1] == section && !seen[k]) {
+      print a[2], "=", TARGETS[k]
+    }
+  }
+}
+
+{
+  if ($0 ~ /^\[.+\]$/) {
+    if (section != "") {
+      emit_missing(section)
+    }
+    section = substr($0, 2, length($0)-2)
+    print
+    next
+  }
+
+  if (match($0, /^([^;#=\s]+)[[:space:]]*=[[:space:]]*(.*)$/, m)) {
+    key = section "." m[1]
+    if (key in TARGETS) {
+      print m[1], "=", TARGETS[key]
+      seen[key] = 1
+      next
+    }
+  }
+
+  print
+}
+
+END {
+  if (section != "") {
+    emit_missing(section)
+  }
+
+  # Add missing sections
+  for (k in TARGETS) {
+    split(k, a, ".")
+    if (!(a[1] in section_seen)) {
+      print "", "[" a[1] "]"
+      for (x in TARGETS) {
+        split(x, b, ".")
+        if (b[1] == a[1]) {
+          print b[2], "=", TARGETS[x]
+        }
+      }
+      section_seen[a[1]] = 1
+    }
+  }
+}
+' "$INI_PATH" > "$tmp"
+
+mv "$tmp" "$INI_PATH"
+
+echo "StarfieldPrefs.ini has been updated. No spacing errors."
+
 
