@@ -45,7 +45,7 @@ fedora() {
   cd proton-shim
   sudo make install
   cd ..
-  rm proton-shim
+  rm ProtonShim
 }
 
 case "$PKG_MANAGER" in
