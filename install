@@ -38,13 +38,12 @@ fi
 # ---------------- Fedora proton-shim build ----------------
 
 fedora() {
-  sudo dnf install -y zip fuse git make python3
 
 }
 
 case "$PKG_MANAGER" in
   arch)
-    yay -S --needed --noconfirm fuse2 zip
+    yay -S --needed --noconfirm fuse2
     ;;
   fedora)
     fedora
